@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Iterator-External_iterator</title>
+</head>
+<body>
+<script>
+// External Iterator
+var Iterator = function (obj) {
+	var current = 0;
+
+	var getItem = function () {
+		return obj[current]
+	}
+
+	var isDone = function () {
+		return current >= obj.length
+	}
+
+	var next = function () {
+		current += 1
+	}
+
+	return {
+		current: current,
+		next: next,
+		isDone: isDone,
+		getItem: getItem
+	}
+}
+
+// Invoke example
+/**
+ * @method compare
+ * @param [Array] arr1
+ * @param [Array] arr2
+ * @return [Boolean]
+ */
+var compare = function (iterator1, iterator2) {
+	while (!iterator1.isDone() && !iterator2.isDone()) {
+		if (iterator1.getItem() !== iterator2.getItem()) throw new Error('arr2 is not same as arr1')
+		iterator1.next()
+		iterator2.next()
+	}
+	console.log('arr1 is same as arr2')
+}
+
+compare(Iterator([1, 2, 3]), Iterator([1, 2, 3]))
+</script>
+</body>
+</html>

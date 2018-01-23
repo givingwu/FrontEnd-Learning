@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Strategies Pattern</title>
+</head>
+<body>
+  <div style="position:absolute; width: 5px; height: 5px; background:blue" id="div"></div>
+  <form action="xxx.com/register" id="registerForm" method="post">
+    <div class="cell">
+      <div class="cell__hd">user name</div>
+      <div class="cell__bd"><input type="text" name="username"></div>
+    </div>
+    <div class="cell">
+      <div class="cell__hd">user password</div>
+      <div class="cell__bd"><input type="password" name="password"></div>
+    </div>
+    <div class="cell">
+      <div class="cell__hd">phone number</div>
+      <div class="cell__bd"><input type="text" name="phone"></div>
+    </div>
+    <div class="cell">
+      <div class="cell__ft">
+        <button>Submit</button>
+      </div>
+    </div>
+  </form>
+  <script>
+    // anmation
+    // strategies Tween object
+    var tween = {
+      // t time  时间
+      // b begin 开始位置
+      // c 目标移动位置
+      // d duration
+      linear: function (t, b, c, d) {
+        return c * t / d + b
+      },
+      easeIn: function (t, b, c, d) {
+        return c * (t /= d) * t + b
+      },
+      strongEaseIn: function (t, b, c, d) {
+        return c * (t /= d) * t * t * t * t + b
+      },
+      strongEaseOut: function(t, b, c, d) {
+        return c * ((t = t/d - 1) * t * t * t * t + 1) + b
+      },
+      sineaseIn: function (t, b, c, d) {
+        return c * (t /= d) * t * t + b
+      },
+      sineaseOut: function (t, b, c, d) {
+        return c * ((t = t/d - 1) * t * t + 1) + b
+      }
+    }
+
+    var Animation = function (dom) {
+      this.dom = dom
+      this.startTime = 0
+      this.startPos = 0
+      this.endPos = 0
+      this.propertyName = null
+      this.easing = null
+      this.duration = null
+    }
+
+    Animation.prototype.start = function (propertyName, endPos, duration, easing) {
+      this.startTime = +new Date
+      this.startPos = this.dom.getBoundingClientRect()[propertyName]
+      this.propertyName = propertyName
+      this.endPos = endPos
+      this.duration = duration
+      this.easing = tween[easing]
+
+      var self = this
+      var timerId = setInterval(function() {
+        if (self.step() === false) {
+          clearInterval(timerId)
+        }
+      }, 19)
+    }
+
+    Animation.prototype.step = function () {
+      var t = +new Date()
+      if (t >= this.startTime + this.duration) {
+        this.update(this.endPos)
+        return false
+      }
+      // The current position
+      var pos = this.easing(t - this.startTime, this.startPos, this.endPos - this.startPos, this.duration)
+      this.update(pos)
+    }
+
+    Animation.prototype.update = function (pos) {
+      // console.log(pos)
+      // debugger
+      this.dom.style[this.propertyName] = pos + 'px'
+    }
+
+    // Example
+    var div = document.getElementById('div')
+    var animate = new Animation(div)
+    animate.start('left', 500, 1000, 'strongEaseOut')
+    // animate.start('top', 1500, 500, 'strongEaseIn')
+  </script>
+  <script>
+    // validator of form
+    // strategy
+    var strategies = {
+      isNonEmpty: function (val, msg) {
+        if (!val) return msg
+      },
+      minLength: function (val, length, msg) {
+        if (String(val).length < length) return msg
+      },
+      maxLength: function (val, length, msg) {
+        if (String(val).length >= length) return msg
+      },
+      isMobile: function (val, msg) {
+        if (!/(^1[3|5|8][0-9]{9}$)/.test(val)) return msg
+      }
+    }
+
+    // Context validator class
+    /**
+     * @class Validator
+     */
+    var Validator = function () {
+      // cahce all rules to be validated
+      this.cache = []
+    }
+
+    /**
+     * @method Validtor.add
+     * @param dom   {HTMLElement} 'input | select | radio | checkbox | FormElement'
+     * @param rules {Array} [rule{Object}, rule, rule]
+     */
+    Validator.prototype.add = function (dom, rules) {
+      var self = this
+
+      // for 循环每个规则
+      for (var i = 0, rule; rule = rules[i++]; ) {
+        (function (rule) {
+          // parameter: { dom.value, [{ strategy: 'isNonEmpty', errorMessage: '脱了裤子就让我们看这个？朋友！'}, {strategy: 'maxLength:26', errorMessage: '太长了…… ^_^，朋友！'}, {strategy: 'maxLength:6', errorMessage: '太短了…… ^_^，朋友！'}]
+          // 第一步 分离规则的策略 separate {maxLength:26} become an array like [minLength, 6] or [maxLength, 26]
+          var strategyArr = rule.strategy.split(':')
+          var errorMessage = rule.errorMessage
+
+          // 往当前 context 中 push validate rule
+          self.cache.push(function () {
+            // 策略 = 删除数组第一个元素 并返回
+            var strategy = strategyArr.shift() // actually rule 'isNonEmpty|maxLength|maxLength|isMobile'
+            // stratrgy = [minLength/maxLength]
+            strategyArr.unshift(dom.value) // 插入
+            // stratrgy = [dome.value, minLength/maxLength]
+            strategyArr.push(errorMessage)
+            return strategies[strategy].apply(dom, strategyArr)
+          })
+        })(rule)
+      }
+    }
+
+    /**
+     * @method Validator.start
+     */
+    Validator.prototype.start = function () {
+      for (var i = 0, validatorFn; validatorFn = this.cache[i++]; ) {
+        var errorMessage = validatorFn()
+        if (errorMessage) return errorMessage
+      }
+    }
+  </script>
+  <script>
+    window.onload = function () {
+      var registerForm = document.forms['registerForm']
+
+      var validateFunc = function () {
+        var validator = new Validator()
+        validator.add(registerForm.username, [{
+          strategy: 'isNonEmpty',
+          errorMessage: '脱了裤子就让我们看这个？朋友！ from username'
+        }, {
+          strategy: 'minLength:6',
+          errorMessage: '太短了…… ^_^，朋友！ from username'
+        }, {
+          strategy: 'maxLength:26',
+          errorMessage: '太长了…… ^_^，朋友！ from username'
+        }])
+        validator.add(registerForm.password, [{
+          strategy: 'isNonEmpty',
+          errorMessage: '脱了裤子就让我们看这个？朋友！ from password'
+        }, {
+          strategy: 'minLength:6',
+          errorMessage: '太短了…… ^_^，朋友！ from password'
+        }, {
+          strategy: 'maxLength:26',
+          errorMessage: '太长了…… ^_^，朋友！ from password'
+        }])
+        validator.add(registerForm.phone, [{
+          strategy: 'isMobile',
+          errorMessage: 'What\'s your shit Number?!'
+        }])
+
+        return validator.start()
+      }
+
+      registerForm.onsubmit = function (e) {
+        e.stopPropagation()
+        e.preventDefault()
+        var errorMessage = validateFunc()
+        if (errorMessage) {
+          alert(errorMessage)
+          return false
+        } else {
+          alert('Congratulations, Your form is all right.')
+        }
+      }
+    }
+  </script>
+</body>
+</html>

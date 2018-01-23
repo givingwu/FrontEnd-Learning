@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Our self WeChat Application States Mangament Test - Yammii Mini Program</title>
+</head>
+<body>
+
+<script>
+// 1. 状态不应该被每个view 生命周期函数管理
+// 2. 每个页面生命周期函数 处理的只应该是 自身内部逻辑
+// 3. 其他状态管理逻辑都应该由 外部 global state control
+// 4. 因为 state 会存在 互斥状态 即非2即1 默认为0 所以全局state 处理起来将分成 互斥状态 和 兼容状态
+// 5. 待 state 自身初始化完成后 状态交由 view处理 view只能get无法set
+
+const Store = {
+  context: this,
+  state: {
+    _line: ['default', 'queue', 'order'],
+
+    _state: {
+      //
+    }
+  },
+  data: {
+    'default': {
+      initStart () {},
+      initEnd () {}
+    },
+    'queue': {
+      initStart () {},
+      initEnd () {}
+    },
+    'order': {
+      initStart () {},
+      initEnd () {}
+    }
+  },
+  init (context) {
+    // init state line and others handler
+    // inside do the all handlers function
+
+    Object.defineProperties(Store, eachLineState, {
+      get () {},
+      set (val) {}
+    })
+  },
+
+  created () {},
+
+  destroy () {}
+}
+</script>
+</body>
+</html>

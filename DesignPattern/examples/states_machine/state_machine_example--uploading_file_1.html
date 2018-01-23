@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>uploading file</title>
+</head>
+<body>
+<script>
+  var plugin = (function() {
+    var plugin = document.createElement('embed')
+    plugin.style.display = 'none'
+    plugin.type = 'aplication/txftn-wekit'
+
+    plugin.sign = function () {
+      console.log('start upload file ...')
+    }
+
+    plugin.pause = function () {
+      console.log('pause upload file ...')
+    }
+
+    plugin.uploading = function () {
+      console.log('start file uploading ...')
+    }
+
+    plugin.del = function () {
+      console.log('delete this upload file ...')
+    }
+
+    plugin.done = function () {
+      console.log('done the file upload ...')
+    }
+
+    document.body.appendChild(plugin)
+
+    return plugin
+  }())
+
+  var Upload = function (fileName) {
+    this.plugin = plugin
+    this.fileName = fileName
+    this.button1 = null
+    this.button2 = null
+
+    this.signState = new SignState(this)
+    this.uploadingState = new UploadingState(this)
+    this.pauseState = new PauseState(this)
+    this.doneState = new DoneState(this)
+    this.errorState = new ErrorState(this)
+
+    Object.defineProperty(this, 'currState', {
+      set (newVal) {
+        console.log(newVal.constructor.name)
+        this._currState = newVal
+      },
+      get () {
+        return this._currState
+      }
+    })
+
+    this.currState = this.signState
+  }
+
+  Upload.prototype.init = function () {
+    var that = this
+
+    this.dom = document.createElement('div')
+    this.dom.innerHTML = '<span>file name:' + this.fileName + '</span><button data-action="button1">scanning</button><button data-action="button2">delete</button>'
+
+    // this.dom.childNodes.forEach(node => console.log(node.nodeName.toLowerCase()))
+    console.log(this.dom.childNodes)
+
+    document.body.appendChild(this.dom)
+
+    this.button1 = this.dom.querySelector('[data-action="button1"')
+    this.button2 = this.dom.querySelector('[data-action="button2"')
+    this.bindEvent()
+  }
+
+  Upload.prototype.bindEvent = function () {
+    var self = this
+
+    this.button1.onclick = function () {
+      self.currState.clickButton1Handler(this)
+    }
+
+    this.button2.onclick = function () {
+      self.currState.clickButton2Handler(this)
+    }
+  }
+
+  Upload.prototype.sign = function () {
+    this.plugin.sign()
+    this.currState = this.signState
+  }
+
+  Upload.prototype.uploading = function () {
+    this.button1.innerHTML = 'uploading, click to pause'
+    this.plugin.uploading()
+    this.currState = this.uploadingState
+  }
+
+  Upload.prototype.pause = function () {
+    this.button1.innerHTML = 'has pause, click to continue'
+    this.plugin.pause()
+    this.currState = this.pauseState
+  }
+
+  Upload.prototype.done = function () {
+    this.button1.innerHTML = 'upload done'
+    this.plugin.done()
+    this.currState = this.doneState
+  }
+
+  Upload.prototype.error = function () {
+    this.button1.innerHTML = 'upload failed'
+    this.currState = this.errorState
+  }
+
+  Upload.prototype.del = function () {
+    this.plugin.del()
+    this.dom.parentNode.removeChild(this.dom)
+  }
+
+  /**
+   * StateFactory
+   * @interface
+   */
+  class StateFactory {
+    clickButton1Handler () {
+      throw new ReferenceError("The child must override the parent's method")
+    }
+
+    clickButton2Handler () {
+      throw new ReferenceError("The child must override the parent's method")
+    }
+  }
+
+  /**
+   * @class SignState
+   * @inherit
+   */
+  class SignState extends StateFactory {
+    constructor (ctx) {
+      super()
+      this.ctx = ctx
+    }
+
+    clickButton1Handler () {
+      console.log('scanning, cannot click')
+    }
+
+    clickButton2Handler () {
+      console.log('scanning, cannot click')
+    }
+  }
+
+  /**
+   * @class UploadingState
+   * @inherit
+   */
+  class UploadingState extends StateFactory {
+    constructor (ctx) {
+      super()
+      this.ctx = ctx
+    }
+
+    clickButton1Handler () {
+      this.ctx.pause()
+    }
+
+    clickButton2Handler () {
+      console.log('uploading cannot delete')
+    }
+  }
+
+  /**
+   * @class PauseState
+   * @inherit
+   */
+  class PauseState extends StateFactory {
+    constructor (ctx) {
+      super()
+      this.ctx = ctx
+    }
+
+    clickButton1Handler () {
+      this.ctx.uploading()
+    }
+
+    clickButton2Handler () {
+      return
+    }
+  }
+
+  /**
+   * @class SignState
+   * @inherit
+   */
+  class DoneState extends StateFactory {
+    constructor (ctx) {
+      super()
+      this.ctx = ctx
+    }
+
+    clickButton1Handler () {
+      this.ctx.done()
+    }
+
+    clickButton2Handler () {
+      this.ctx.del()
+    }
+  }
+
+  /**
+   * @class ErrorState
+   * @inherit
+   */
+  class ErrorState extends StateFactory {
+    constructor (ctx) {
+      super()
+      this.ctx = ctx
+    }
+
+    clickButton1Handler () {
+      console.log('happend error')
+    }
+
+    clickButton2Handler () {
+      this.ctx.del()
+    }
+  }
+
+  // upload file
+  var uploadObj = new Upload('JavaScript Langage Edition 3')
+  uploadObj.init()
+
+  window.external.upload = function (state) {
+    uploadObj[state]()
+  }
+
+  window.external.upload('sign')
+
+  setTimeout(function(){
+    window.external.upload('uploading')
+  }, 1000)
+
+  setTimeout(function(){
+    window.external.upload('done')
+  }, 7000)
+
+</script>
+</body>
+</html>

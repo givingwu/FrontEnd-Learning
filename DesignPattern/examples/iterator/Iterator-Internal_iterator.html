@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Iterator-Internal_iterator</title>
+</head>
+<body>
+<script>
+// Internal Iterator
+var each = function (arr, callback) {
+	for (var i = arr.length - 1; i >= 0; i--) {
+		callback(arr[i], i, arr)
+	}
+}
+
+// Invoke example
+each([1, 2, 3], function (item, index) {
+	console.log('item : ', item)
+	console.log('index : ', index)
+})
+
+/**
+ * @method compare
+ * @param [Array] arr1
+ * @param [Array] arr2
+ * @return [Boolean]
+ */
+var compare = function (arr1, arr2) {
+	if (arr1.length !== arr2.length) throw new Error('The length is not same as arr1 and arr2')
+
+	each(arr1, function (t, i) {
+		if (t !== arr2[i]) throw new Error('arr2 is not same as arr1')
+	})
+
+	console.log('arr1 is same as arr2')
+}
+
+compare([1, 2, 3], [1, 2, 3])
+</script>
+</body>
+</html>

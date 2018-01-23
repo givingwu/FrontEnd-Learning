@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Proxy-Virtual_proxy</title>
+	<style>
+		img { width: auto; max-width: 100%; }
+	</style>
+</head>
+<body>
+<script>
+// original-method-body
+var myImage = (function (src) {
+	var imgNode = document.createElement('img')
+	document.body.appendChild(imgNode)
+
+	return function (src) {
+		imgNode.src = src
+	}
+}())
+
+// proxy-method-body
+var proxyImage = (function () {
+ var img = new Image()
+ img.onload = function () {
+ 	myImage(this.src)
+ }
+
+ return function (src) {
+ 	myImage('http://jasonkenison.com/uploads/blog/loading.png')
+ 	img.src = src
+ }
+}())
+
+proxyImage('http://digitalresult.com/wp-content/uploads/2016/05/pretty-girl-wallpaper-5.jpeg')
+</script>
+</body>
+</html>

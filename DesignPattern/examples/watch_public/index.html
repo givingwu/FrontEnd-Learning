@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Observer Pattern (publish - watch)</title>
+  <style>
+    div { text-align: center; }
+    .school { width: 100%; height: 50px; line-height: 50px;  background-color: lightblue; }
+    .group { width: 100%; height: 50px; margin-top: 8px; font-size: 0; }
+    .student { display: inline-block; width: 25%; height: 100%; font-size: 16px; line-height: 50px; background: pink; }
+  </style>
+</head>
+<body>
+  <div class="school">publisher (university)</div>
+  <div class="group">
+    <div class="student">Watcher (student) - 1</div>
+    <div class="student">Watcher (student) - 2</div>
+    <div class="student">Watcher (student) - 3</div>
+    <div class="student">Watcher (student) - 4</div>
+  </div>
+  <!-- 1、textarea&#10;2、success -->
+  <textarea name="textArea" id="textArea" cols="30" rows="10" 
+  placeholder="1. lalalalallala &#10;2.dsfsddfsfdf jdfgjg  &#10;3.dfdgsdopwe"></textarea>
+  <script>
+    var textAreas = document.getElementsByTagName('textarea');
+    Array.prototype.forEach.call(textAreas, function(elem) {
+        elem.placeholder = elem.placeholder.replace(/\\n/g, '\n');
+    });
+  </script>
+  <script>
+    // 感觉这个实现有问题 貌似只有发布 却没有订阅？
+    // 或者说 我没有开放订阅的结构 那在第二个 script 我还是重新写个 listen 和 trigger 吧
+    // the university Publisher
+    class University {
+      constructor (name, score) {
+        // school name
+        this.name = name
+        // 录取分数 Admission score
+        this.admissionScore = score
+        // 志愿新生 Voluntary students
+        this.voluntaryStudents = []
+        // 已被录取新生 Regular students
+        this.regularStudents = []
+      }
+
+      // publish event
+      publishOffer () {
+        this.voluntaryStudents.forEach(student => {
+          if (student && student.score >= this.admissionScore) {
+            student.recieveOffer(this)
+          } else {
+            student.offerBeReject(this, `So sorry for name: '${student.name}': \nWe think your score ${student.score} should be better! \nFrom ${this.name}!`)
+          }
+        })
+        delete this.voluntaryStudents
+      }
+
+      // Be rejected
+      rejectHandler (student) {
+        console.log(`So upset, The student ${student.name} has rejected ${this.name} university offer.`)
+      }
+    }
+
+    // the student Watcher
+    class Student {
+      // the score of each student and an array of the all universities which is the student want to go
+      constructor (name, score, universities) {
+        this.id = null
+        this.university = null
+
+        this.name = name
+        this.score = score
+        this.universities = universities
+
+        this.sendVounltaryApply()
+      }
+
+      sendVounltaryApply () {
+        this.universities.forEach(university => university.voluntaryStudents.push(this))
+      }
+
+      recieveOffer (university) {
+        // 如果 id 被赋值则表示该学生已作出选择
+        if (!this.id) {
+          this.university = university
+          this.registerUniversity()
+        } else {
+          this.rejectedOffer(university)
+        }
+      }
+
+      registerUniversity () {
+        delete this.universities
+        let university = this.university
+        let idx = university.voluntaryStudents.indexOf(this)
+            university.voluntaryStudents.splice(idx, 1)
+
+        this.id = university.name + '-' + university.regularStudents.length
+        university.regularStudents.push(this)
+        console.log(`Thanks 4 the offer by ${university.name} from the one id is ${this.id} and my name is '${this.name}'!`)
+      }
+
+      offerBeReject (university, reason) {
+        console.log(`You are the one be rejected form ${university.name} University and the reason is\n\n${reason}`)
+      }
+
+      rejectedOffer (university) {
+        university.rejectHandler(this)
+      }
+    }
+
+    var  HU = new University('Haford', 100),
+        MIT = new University('MIT', 90),
+       USTC = new University('USTC', 85),
+        XHC = new University('XHC', 70)
+
+    var Sandily= new Student('Sandily', 80, [MIT, USTC, XHC]),
+        Lucy   = new Student('Lucy', 90, [HU, MIT, XHC]),
+        Allen  = new Student('Allen', 88, [MIT, USTC, XHC]),
+        Giving = new Student('Giving', 100, [HU, MIT]),
+        Alice  = new Student('Alice', 76, [USTC, XHC]),
+        Kevin  = new Student('Kevin', 66, [USTC, XHC])
+
+    HU.publishOffer()
+    MIT.publishOffer()
+    USTC.publishOffer()
+    XHC.publishOffer()
+  </script>
+  <script>
+    // 订阅 watch/listen event
+    // a.listen(event, callback())
+    // b.listen(event, callback())
+
+    // 发布 publish/trigger event
+    // obj.trigger(event)
+    class Observer {
+      constructor (name) {
+        if (!name) throw new TypeError('You must pass the name to initilize a new Observer instance.')
+        if (!(this instanceof Observer)) {
+          return new Observer(name)
+        }
+        this.name = name
+        this.events = {}
+      }
+
+      trigger(name) {
+        let args = Array.prototype.unshift.call(arguments, this.events)
+        if (name) {
+          this.events[name] && this.events[name].length && this.events[name].forEach(fn => fn.call(null, arguments))
+        } else {
+          Object.keys(this.events).forEach(KEY => this.events[KEY].forEach(fn => fn.call(null, arguments)))
+        }
+      }
+
+      listen (name, callback) {
+        if (!this.events[name]) {
+          this.events[name] = []
+        }
+        this.events[name].push(callback)
+      }
+
+      remove (name, callback) {
+        if (this.events[name] && this.events[name].length) {
+          if (callback && callback instanceof Function) {
+            for (let i = this.events[name].length; i >= 0; i--) {
+              if (this.events[name][i] === callback) {
+                this.events[name].splice(i, 1)
+                return
+              }
+            }
+          } else {
+            this.events[name] = []
+          }
+        } else {
+          this.events[name] = []
+        }
+      }
+    }
+
+    // invoke examples
+    var observable = new Observer('a')
+
+    observable.listen('success', function () {
+      console.log('Let\'s go to earn more salary!')
+    })
+
+    observable.listen('process', function () {
+      console.log('Processing!')
+    })
+
+    observable.listen('active', function () {
+      console.log('Activing!')
+    })
+
+    observable.listen('failed', function () {
+      console.log('So sorry it be rejected!')
+    })
+
+    observable.remove('success')
+
+    observable.trigger('process')
+
+  </script>
+</body>
+</html>

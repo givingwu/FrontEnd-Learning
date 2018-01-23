@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>singleton</title>
+</head>
+<body>
+<script>
+  var Singleton = function () {
+    this.name = name
+    this.instance = null
+  }
+  Singleton.prototype.getName = function () {
+    alert(this.name)
+  }
+  Singleton.prototype.getInstance = function (name) {
+    if (!this.instance) {
+      this.instance = new Singleton(name)
+    }
+    return this.instance
+  }
+
+  var a = Singleton.getInstance('Giving1')
+  var b = Singleton.getInstance('Giving2')
+
+  alert(a === b)
+</script>
+<script>
+  var Singleton1 = function () {
+    this.name = name
+  }
+  Singleton.prototype.getName = function () {
+    alert(this.name)
+  }
+  // 
+  Singleton.prototype.getInstance = (function (name) {
+    // private variable
+    var instance = null
+    // immediate function will be invoked and return the locale scope varibale 'instance'
+    return function () {
+      if (!instance) {
+        instance = new Singleton(name)
+      }
+      return instance
+    }
+  })()
+
+  var a1 = Singleton.getInstance('Giving1')
+  var b1 = Singleton.getInstance('Giving2')
+
+  alert(a1 === b1)
+</script>
+<script>
+  var CreateElement = function (tag, html) {
+    this.tag = tag
+    this.html = html
+    this.init()
+  }
+
+  CreateElement.prototype.init = function () {
+    var node = document.CreateElement(this.tag)
+    node.innerHTML = this.html
+    document.body.appendChild(node)
+  }
+
+  var ProxySingletonCreateElement = function (tag, html) {
+    var instance = null
+    if (!instance) {
+      instance = new CreateElement(tag, html)
+    }
+    return instance
+  }
+
+  var div1 = new ProxySingletonCreateElement('div', 'i am div one')
+  var div2 = new ProxySingletonCreateElement('div', 'i am div two')
+  alert(div1 === div2)
+</script>
+<script>
+  var getSingletom = function (fn) {
+    // closure
+    var result = null
+    return function () {
+      // curry function
+      return result || (result = fn.apply(null, arguments))
+    }
+  }
+
+  var bindEvent = function (id) {
+    document.getElementById(id).onclick = function () {
+      alert('click')
+    }
+    return true
+  }
+
+  var render = function () {
+    console.log('Start to render list')
+    bindEvent()
+  }
+
+  render()
+  render()
+  render()
+
+</script>
+</body>
+</html>

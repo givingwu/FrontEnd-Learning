@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Proxy-proxy_math_calculate</title>
+</head>
+<body>
+
+<script>
+var plus = function () {
+	var args = Array.prototype.splice.call(arguments, ','), sum = 0
+	for (var i = args.length - 1; i >= 0; i--) {
+		sum += args[i]
+	}
+	return sum
+}
+
+var mult = function () {
+	var args = Array.prototype.splice.call(arguments, ','), result = 1
+	for (var i = args.length - 1; i >= 0; i--) {
+		result *= args[i]
+	}
+	return result
+}
+
+var createProxyFactor = function (fn) {
+	// closure to save cache Obj
+	var cache = Object.create(null)
+	console.log(cache)
+	// return the real fucntion will be executed
+	return function () {
+		var args = Array.prototype.join.call(arguments, ',')
+		console.log(cache)
+		if (args in cache) {
+			console.log('into cache')
+			return cache[args]
+		}
+		console.log('no cache')
+		return cache[args] = fn.apply(this, arguments)
+	}
+}
+
+// var createProxyFactor = function (fn) {
+// 	var cache = {}
+// 	return function () {
+// 		var args = Array.prototype.join.call(arguments, ',')
+// 		if (args in cache) return cache[args]
+// 		return cache[args] = fn.apply(this, arguments)
+// 	}
+// }
+
+// Each proxy function will be created a special function context to cache
+var proxyPlus = createProxyFactor(plus),
+		proxyMult = createProxyFactor(mult)
+
+proxyPlus(1,2,3,4)
+proxyPlus(1,2,3,4)
+proxyMult(1,2,3,4)
+proxyMult(1,2,3,4)
+
+
+</script>
+</body>
+</html>

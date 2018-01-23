@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The first interceptor pattern by myself</title>
+</head>
+<body>
+
+<script>
+// in fact i was very curious about how to implement a interceptor
+// so this is a test in my way, and i am very wanna implements it
+const model = {
+  state: 'default',
+  context: null,
+
+  internal: {
+    userId: 24,
+    restaurantId: 4,
+    userOrderType: 2,
+    orderId: '',
+    queueId: '',
+    reservationId: ''
+  },
+
+  data: {
+    'queue': {
+      'user': {
+        [queueId]: {
+          restaurantId: '',
+          restaurantInfo: {},
+          status: 0
+        }
+      },
+      'restaurant': {
+        [queueId]: {
+          createTime: '',
+          count: '',
+          otherInfo: '...'
+        }
+      }
+    },
+    'order': {
+      'user': {
+        [orderId]: {
+          restaurantId: '',
+          restaurantInfo: {},
+          userOrderType: 2,
+          status: 0
+        }
+      },
+      'restaurant': {
+        orderIds: {},
+        [orderId]: {
+          createTime: '',
+          createUser: {
+            avatarUrl: '',
+            nickName: ''
+          },
+          users: {
+            [autoId]: {
+              avatarUrl: '',
+              nickName: ''
+            },
+            [autoId]: {
+              avatarUrl: '',
+              nickName: ''
+            }
+          }
+        }
+      }
+    }
+  },
+  init () {
+    // start once value listener under users/:userId
+    // check has valid value of user ref
+    // check whether has queue
+    //  1. check once restaurants/:restaurantId/queues/queueInfo/:queueId whether exists
+    //    1.1 has     it's a valid queueId and next update the main view
+    //      1.1.1 open under user queueId listener
+    //      1.1.2 open under restaurant orderId listener
+    //      1.1.3 listen it be removed then invoke the callback
+    //    1.2 don't.  it's not a valid queueId and delete this one ref under users ref
+    // check whether has order
+    //  2. check once restaurants/:restaurantId/orders/:orderId has exists
+    //    2.1 has     it's a valid order and net update the main view
+    //      2.1.1 open under user orderId listener
+    //      2.1.2 open under restaurant orderId listener
+    //      2.1.3 listen it be removed then invoke the callback
+    //    2.2 don't   it's not a valid orderId so remove it and to the next step
+    // open on userId listener
+  },
+  change () {}
+}
+</script>
+</body>
+</html>

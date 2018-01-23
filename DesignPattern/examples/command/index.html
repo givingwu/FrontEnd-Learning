@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>command pattern</title>
+</head>
+<body>
+  <button id="replay">Replay action in console</button>
+  <button id="pause">pause video</button>
+
+<script>
+  window.addEventListener('load', function () {
+    var Ryu = {
+      attack: function () {
+        console.log('攻击')
+      },
+      defense: function () {
+        console.log('防守')
+      },
+      jump: function () {
+        console.log('跳跃')
+      },
+      crouch: function () {
+        console.log('蹲下')
+      }
+    }
+
+    var mekeCommand = function (receiver, state) {
+      if (typeof receiver[state] !== 'function') return
+      return function () {
+        receiver[state]()
+      }
+    }
+
+    var uid = 0
+    var commands = {
+      '119': 'jump',    // w
+      '115': 'crouch',  // s
+      '97': 'defense',  // a
+      '100': 'attack'   // d
+    }
+
+    var commandStack = []
+
+    document.addEventListener('keypress', function (evt) {
+      var keyCode = evt.keyCode, command = mekeCommand(Ryu, commands[keyCode])
+
+      if (command) {
+        command()                     // execute command
+        commandStack.push(command)    // save opreation to the stack
+        command.uid = ++uid
+        console.log(commandStack)
+      }
+    })
+
+    document.querySelector('#replay').addEventListener('click', function () {
+      var command;
+      while (command = commandStack.shift()) {  // get the command from the stack and execute it
+        console.log('The ' + command.uid + 'th action is ')
+        command()
+        console.log(commandStack)
+      }
+    })
+  })
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>combine pattern demo - scan folder and more....</title>
+</head>
+<body>
+<script>
+var Folder = function (name) {
+  this.name = name
+  this.parent = null
+  this.files = []
+}
+
+Folder.prototype.add = function (file, parent) {
+  file.parent = this
+  this.files.push(file)
+  return this
+}
+
+Folder.prototype.scan = function () {
+  console.log('Start scanning folder '  + (this.parent && this.parent.name + ' > ' || '' ) + this.name)
+  for (var i = 0, file; file = this.files[i++]; ) {
+    file.scan()
+  }
+}
+
+var File = function (name) {
+  this.name = name
+  this.parent = null
+}
+
+File.prototype.add = function () {
+  throw new Error('Under the file type you cannot add file again.')
+}
+
+File.prototype.scan = function () {
+  console.log('Start scanning ' + (this.parent && this.parent.name + ' > ' || '' ) + this.name)
+}
+
+File.prototype.remove = function () {
+  if (!this.parent) return
+  for (var files = this.parent.files, l = files.length; l >= 0; l--) {
+    var file = files[l]
+    if (file === this) files.splice(l, 1)
+  }
+}
+
+var folder = new Folder('examples'),
+    folder1= new Folder('combine'),
+    folder2= new Folder('command');
+
+var file1 = new File('index.html'),
+    file2 = new File('index1.html'),
+    file3 = new File('index2.html')
+
+folder1.add(file1).add(file2)
+folder2.add(file3)
+
+folder.add(folder1)
+folder.add(folder2)
+
+// now assume we are going to copy the folder to a new Folder called 'DesignPattern'
+var DesignPattern = new Folder('DesignPattern'),
+    file0 = new File('proxy_demo.js')
+
+var file4 = new File('深入浅出NodeJS.pdf'),
+    file5 = new File('JavaScript高级程序设计 V3'),
+    file6 = new File('nothing.what')
+
+DesignPattern.add(file4).add(file5).add(file6)
+
+folder.scan()
+DesignPattern.scan()
+
+</script>
+</body>
+</html>
