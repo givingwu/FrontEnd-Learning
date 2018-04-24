@@ -90,6 +90,6 @@ Node.js还提供了另外两个与"任务队列"有关的方法：`process.nextT
 
 # References
 
-[Philip Roberts: Help, I’m stuck in an event-loop.](https://vimeo.com/96425312)
-[JavaScript 运行机制详解：再谈Event Loop](http://www.ruanyifeng.com/blog/2014/10/event-loop.html)
-[JavaScript 异步、栈、事件循环、任务队列](https://segmentfault.com/a/1190000011198232)
++ [Philip Roberts: Help, I’m stuck in an event-loop.](https://vimeo.com/96425312)
++ [JavaScript 运行机制详解：再谈Event Loop](http://www.ruanyifeng.com/blog/2014/10/event-loop.html)
++ [JavaScript 异步、栈、事件循环、任务队列](https://segmentfault.com/a/1190000011198232)
